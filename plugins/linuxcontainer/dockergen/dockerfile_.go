@@ -56,11 +56,16 @@ var dockerfileTemplate = `# syntax=docker/dockerfile:1
 {{end}}
 
 
+
 ###
 # Step 2: prepare the final image
 ###
 
-FROM gcr.io/distroless/base-debian12
+# uView : we use cc-debian12 and not base-debian12 to have stdlib for FIRM C++ code
+FROM gcr.io/distroless/cc-debian12
+
+# uView: Copy artifacts for processes with custom build commands
+COPY --from=firm-build /anomaly /anomaly
 
 # Copy artifacts for processes that didn't have custom build commands
 {{range $ProcName, $_ := .DefaultProcs -}}
@@ -71,6 +76,11 @@ COPY ./{{$ProcName}} /{{$ProcName}}
 {{range $ProcName, $_ := .CustomProcs -}}
 COPY --from={{$ProcName}} /{{$ProcName}} /{{$ProcName}}
 {{end}}
+
+
+# uView : PATH and dynamic libraries paths
+ENV LD_LIBRARY_PATH="/anomaly/lib"
+ENV PATH="/anomaly/bin:${PATH}"
 
 # Get a shell
 COPY --from=busybox:1.35.0-uclibc /bin/sh /bin/sh

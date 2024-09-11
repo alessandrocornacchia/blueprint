@@ -20,5 +20,6 @@ func main() {
 	cmdbuilder.MakeAndExecute(
 		name,
 		specs.Original,
+		specs.Type1Failure,
 	)
 }
